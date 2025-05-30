@@ -1,33 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const PlayerControls = ({ words, onHighlight, highlightedIndex }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const utteranceRef = useRef(null);
+  const [utterance, setUtterance] = useState(null);
+  const startIndicesRef = useRef([]);
   const synthRef = useRef(null);
-
-  // Create boundary handler with proper word offset calculation
-  const createBoundaryHandler = useCallback((wordOffset = 0) => {
-    return (event) => {
-      if (event.name === 'word') {
-        const charIndex = event.charIndex;
-        let cumulativeLength = 0;
-        
-        for (let i = 0; i < words.length; i++) {
-          // Add space before each word except the first
-          const wordWithSpace = (i === 0 ? '' : ' ') + words[i].text;
-          cumulativeLength += wordWithSpace.length;
-          
-          if (cumulativeLength > charIndex) {
-            const actualIndex = wordOffset + i;
-            setCurrentIndex(actualIndex);
-            onHighlight(words[i], actualIndex);
-            break;
-          }
-        }
-      }
-    };
-  }, [words, onHighlight]);
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -40,40 +18,67 @@ const PlayerControls = ({ words, onHighlight, highlightedIndex }) => {
     const u = new SpeechSynthesisUtterance();
     u.lang = 'en-US';
     u.rate = 1;
-    utteranceRef.current = u;
-
+    
+    setUtterance(u);
+    
     return () => {
       synthRef.current.cancel();
     };
   }, []);
 
-  // Update utterance text and boundary handler when words change
+  // Update utterance text and compute start indices
   useEffect(() => {
-    const u = utteranceRef.current;
-    if (!u || words.length === 0) return;
+    if (utterance && words.length > 0) {
+      const fullText = words.map(w => w.text).join(' ');
+      utterance.text = fullText;
+      
+      // Precompute word start indices (including spaces)
+      const starts = [];
+      let current = 0;
+      for (let i = 0; i < words.length; i++) {
+        starts.push(current);
+        current += words[i].text.length + (i < words.length - 1 ? 1 : 0); // Add space after each word
+      }
+      startIndicesRef.current = starts;
+    }
+  }, [words, utterance]);
 
-    // Reset playback state on word change
-    synthRef.current.cancel();
-    setIsPlaying(false);
-    setCurrentIndex(0);
-    
-    u.text = words.map(w => w.text).join(' ');
-    u.onboundary = createBoundaryHandler(0);
-  }, [words, createBoundaryHandler]);
+  // Setup utterance boundary handler
+  useEffect(() => {
+    if (!utterance) return;
+
+    utterance.onboundary = (event) => {
+      if (event.name === 'word') {
+        const charIndex = event.charIndex;
+        const startIndices = startIndicesRef.current;
+        
+        // Find current word index using precomputed start positions
+        for (let i = 0; i < startIndices.length; i++) {
+          const start = startIndices[i];
+          const end = start + words[i].text.length;
+          
+          if (charIndex >= start && charIndex < end) {
+            setCurrentIndex(i);
+            onHighlight(words[i], i);
+            break;
+          }
+        }
+      }
+    };
+  }, [utterance, words, onHighlight]);
 
   const togglePlayback = () => {
-    const synth = synthRef.current;
-    const u = utteranceRef.current;
-    if (!synth || !u) return;
-
+    if (!synthRef.current) return;
+    
     if (isPlaying) {
-      synth.pause();
+      synthRef.current.pause();
       setIsPlaying(false);
     } else {
-      if (synth.paused) {
-        synth.resume();
+      if (synthRef.current.paused) {
+        synthRef.current.resume();
       } else {
-        synth.speak(u);
+        synthRef.current.cancel(); // Clear any previous utterances
+        synthRef.current.speak(utterance);
       }
       setIsPlaying(true);
     }
@@ -83,21 +88,43 @@ const PlayerControls = ({ words, onHighlight, highlightedIndex }) => {
     setCurrentIndex(index);
     onHighlight(word, index);
     
-    const synth = synthRef.current;
-    if (!synth) return;
-
-    synth.cancel();
+    if (!synthRef.current || !utterance) return;
     
-    // Create partial utterance from clicked word
-    const partialWords = words.slice(index);
-    const partialText = partialWords.map(w => w.text).join(' ');
-    const partialUtterance = new SpeechSynthesisUtterance(partialText);
-    partialUtterance.lang = 'en-US';
-    partialUtterance.rate = 1;
-    partialUtterance.onboundary = createBoundaryHandler(index);
+    synthRef.current.cancel(); // Stop current speech
     
-    synth.speak(partialUtterance);
-    utteranceRef.current = partialUtterance;
+    // Create new utterance from clicked word
+    const textToSpeak = words.slice(index).map(w => w.text).join(' ');
+    const u = new SpeechSynthesisUtterance(textToSpeak);
+    u.lang = 'en-US';
+    u.rate = 1;
+    
+    // Precompute start indices for subset
+    const starts = [];
+    let current = 0;
+    const subset = words.slice(index);
+    for (let i = 0; i < subset.length; i++) {
+      starts.push(current);
+      current += subset[i].text.length + (i < subset.length - 1 ? 1 : 0);
+    }
+    
+    u.onboundary = (event) => {
+      if (event.name === 'word') {
+        const charIndex = event.charIndex;
+        for (let i = 0; i < starts.length; i++) {
+          const start = starts[i];
+          const end = start + subset[i].text.length;
+          
+          if (charIndex >= start && charIndex < end) {
+            const originalIndex = index + i;
+            setCurrentIndex(originalIndex);
+            onHighlight(words[originalIndex], originalIndex);
+            break;
+          }
+        }
+      }
+    };
+    
+    synthRef.current.speak(u);
     setIsPlaying(true);
   };
 
