@@ -41,32 +41,77 @@ function App() {
 
   return (
     <div className="app">
-      <header>
-        <h1>Interactive Document Reader</h1>
+      <header className="app-header">
+        <div className="header-content">
+          <h1>Interactive Document Reader</h1>
+          <p className="app-tagline">Upload, read, and interact with your documents</p>
+        </div>
+        <div className="header-decoration"></div>
       </header>
       
-      <main>
+      <main className="app-main">
         {!documentData ? (
           <div className="upload-container">
-            <Uploader onFileUpload={handleFileUpload} />
-            {isLoading && <div className="loader">Processing document...</div>}
-            {error && <div className="error">Error: {error}</div>}
+            <div className="upload-card">
+              <div className="upload-intro">
+                <h2>Get Started with Document Reader</h2>
+                <p>Upload a document to start reading with interactive features</p>
+              </div>
+              
+              <Uploader onFileUpload={handleFileUpload} />
+              
+              {isLoading && (
+                <div className="processing-indicator">
+                  <div className="spinner"></div>
+                  <p>Processing your document...</p>
+                </div>
+              )}
+              
+              {error && (
+                <div className="error-card">
+                  <div className="error-icon">!</div>
+                  <div className="error-message">Error: {error}</div>
+                </div>
+              )}
+              
+              <div className="supported-formats">
+                <h3>Supported Formats:</h3>
+                <div className="format-badges">
+                  <span className="format-badge">PDF</span>
+                  <span className="format-badge">DOCX</span>
+                  <span className="format-badge">TXT</span>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="viewer-container">
             <div className="header-bar">
-              <button className="btn" onClick={() => setDocumentData(null)}>
-                ← Upload New Document
+              <button className="btn back-btn" onClick={() => setDocumentData(null)}>
+                <span className="btn-icon">←</span>
+                Upload New Document
               </button>
-              <span className="file-name">{documentData.fileName}</span>
+              <div className="file-info">
+                <span className="file-icon">
+                  {documentData.fileType === 'pdf' ? '📄' : 
+                   documentData.fileType === 'docx' ? '📝' : '📋'}
+                </span>
+                <span className="file-name">{documentData.fileName}</span>
+              </div>
             </div>
+            
             <DocumentViewer documentData={documentData} />
           </div>
         )}
       </main>
       
-      <footer>
+      <footer className="app-footer">
         <p>Document Reader MVP © {new Date().getFullYear()}</p>
+        <div className="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Contact Us</a>
+        </div>
       </footer>
     </div>
   );
