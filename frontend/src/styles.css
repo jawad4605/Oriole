@@ -1,0 +1,173 @@
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4895ef;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-color);
+    background-color: #f5f7fb;
+  }
+  
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  header {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 30px;
+  }
+  
+  header h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+  }
+  
+  main {
+    flex: 1;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    color: #6c757d;
+  }
+  
+  .upload-container, .viewer-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin: 0 auto;
+  }
+  
+  .header-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+  }
+  
+  .btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+  }
+  
+  .btn:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  .file-name {
+    font-weight: bold;
+    color: #495057;
+  }
+  
+  .loader {
+    text-align: center;
+    padding: 20px;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+  }
+  
+  .error {
+    color: var(--error-color);
+    padding: 10px;
+    background-color: #ffebee;
+    border-radius: 5px;
+    margin-top: 15px;
+    text-align: center;
+  }
+  
+  .document-viewer {
+    margin-top: 20px;
+  }
+  
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .viewport-container {
+    position: relative;
+    margin: 0 auto;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+  }
+  
+  .player-controls {
+    background-color: #f1f3f5;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+  }
+  
+  .play-btn {
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .play-btn:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+  }
+  
+  .progress-container {
+    margin-top: 15px;
+    overflow-x: auto;
+  }
+  
+  .progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  .word {
+    padding: 3px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .word:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .word.active {
+    background-color: #fff9c4;
+    font-weight: bold;
+  }
